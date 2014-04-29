@@ -34,3 +34,17 @@ end
 
 option_parser.parse!
 puts options.inspect
+
+database = ARGV.shift
+
+if options[:iteration].nil?
+  backup_file = database + '_' + Time.now.strftime('%Y%m%d')
+else
+  backup_file = database + '_' + options[:iteration]
+end
+
+mysqldump = "mysqldump -u#{options[:user]} -p#{options[:password]} #{database}"
+puts mysqldump
+
+`#{mysqldump} > #{backup_file}.sql`
+`gzip #{backup_file}.sql`

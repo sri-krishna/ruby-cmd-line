@@ -5,3 +5,15 @@ require 'todo/version.rb'
 def read_todos(filename)
   File.readlines(filename)
 end
+
+def write_todo(file,name,created=Time.now, completed='')
+  file.puts("#{name},#{created},#{completed}")
+end
+
+def todo_file(filename)
+  if !filename.nil?
+    filename
+  else
+    ENV['HOME'] + "/todo.txt"
+  end
+end

@@ -1,49 +1,50 @@
 #!/usr/bin/env ruby
+#---
+# Excerpted from "Build Awesome Command-Line Applications in Ruby 2",
+# published by The Pragmatic Bookshelf.
+# Copyrights apply to this code. It may not be used to create training material, 
+# courses, books, articles, and the like. Contact us if you are in doubt.
+# We make no guarantees that this code is fit for any purpose. 
+# Visit http://www.pragmaticprogrammer.com/titles/dccar2 for more book information.
+#---
+
+$LOAD_PATH << File.expand_path(File.dirname(__FILE__) + '/../lib')
 require 'gli'
-begin # XXX: Remove this begin/rescue before distributing your app
 require 'todo'
-#rescue LoadError
-#  STDERR.puts "In development, you need to use `bundle exec bin/todo` to run your app"
-#  STDERR.puts "At install-time, RubyGems will make sure lib, etc. are in the load path"
-#  STDERR.puts "Feel free to remove this message from bin/todo now"
-#  exit 64
-#end
+require 'todo/version'
 
 include GLI::App
 
-program_desc 'Describe your application here'
-
 version Todo::VERSION
 
-desc 'Describe some flag here'
-default_value 'the default'
-arg_name 'The name of the argument'
-flag [:f,:flagname]
+flag :f
 
-desc 'Describe new here'
-arg_name 'Describe arguments to new here'
+desc ''
 command :new do |c|
   c.flag :priority
   c.switch :f
 
   c.action do |global_options,options,args|
-    puts "Global:"    
+    puts "Global:"
     puts "-f - #{global_options[:f]}"
     puts "Command:"
-    puts "-f #{options[:f] ? 'true' : 'false'}"
+    puts "-f - #{options[:f] ? 'true' : 'false'}"
     puts "--priority - #{options[:priority]}"
     puts "args - #{args.join(',')}"
-    # Your command logic here
-     
-    # If you have any errors, just raise them
-    # raise "that command made no sense"
 
-    puts "new command ran"
+    TODO_FILE = todo_file(global_options[:f])
+
+    File.open(TODO_FILE,'a') do |file|
+      args.each do |new_task|
+        write_todo(file,new_task)
+        puts "Task added."
+      end
+    end
+    puts "invocation of new complete"
   end
 end
 
-desc 'Describe list here'
-arg_name 'Describe arguments to list here'
+desc ''
 command :list do |c|
   c.flag :s
   c.action do |global_options,options,args|
@@ -52,45 +53,46 @@ command :list do |c|
     puts "Command:"
     puts "-s - #{options[:s]}"
 
-    #todos = read_todos(global_options[:filename])
-    todos = File.readlines()
+    TODO_FILE = todo_file(global_options[:f])
+
+    todos = read_todos(TODO_FILE)
     if options[:s] == 'name'
       todos = todos.sort { |a,b| a <=> b}
     end
-    todos.each do |todo|
-      puts todo
+    counter = 1
+    todos.each_with_index do |todo, counter|
+      printf("%3d - %s",counter,todo)
     end
   end
 end
 
-desc 'Describe done here'
-arg_name 'Describe arguments to done here'
+desc ''
 command :done do |c|
   c.action do |global_options,options,args|
     puts "Global:"
     puts "-f - #{global_options[:f]}"
+
+    TODO_FILE = todo_file(global_options[:f])
+    puts TODO_FILE
+    todos = read_todos(TODO_FILE)
+    task_number = args.shift
+    puts task_number
+
+    File.open("#{TODO_FILE}.new",'w') do |new_file|
+      todos.each_with_index do |todo, counter|
+        name,created,completed = todo.split(/,/)
+        puts counter, name, created, completed
+        if task_number.to_i == counter
+          puts "match"
+          write_todo(new_file,name,created,Time.now)
+          puts "Task #{counter} completed"
+        else
+          write_todo(new_file,name,created,completed)
+        end
+      end
+    end
+    `mv #{TODO_FILE}.new #{TODO_FILE}`
   end
-end
-
-pre do |global,command,options,args|
-  # Pre logic here
-  # Return true to proceed; false to abort and not call the
-  # chosen command
-  # Use skips_pre before a command to skip this block
-  # on that command only
-  true
-end
-
-post do |global,command,options,args|
-  # Post logic here
-  # Use skips_post before a command to skip this
-  # block on that command only
-end
-
-on_error do |exception|
-  # Error logic here
-  # return false to skip default error handling
-  true
 end
 
 exit run(ARGV)
