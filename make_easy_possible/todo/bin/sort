@@ -1,0 +1,9 @@
+NAME
+    list - List tasks
+
+SYNOPSIS
+    todo [global options] list [command options] 
+
+COMMAND OPTIONS
+    --format=csv|pretty - Format of the output (default: none)
+    -s arg              - (default: none)
