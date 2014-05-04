@@ -1,0 +1,17 @@
+require File.join([File.dirname(__FILE__),'lib','todo/version.rb'])
+
+Gem::Specification.new do |s|
+  s.name = "todo"
+  s.version = "0.0.1"
+  s.platform = "Gem::Platform::RUBY"
+  s.authors = ["David Copeland"]
+  s.email = ["davec at naildviring5.com"]
+  s.homepage = "http://www.nailvidring.com"
+  s.summary = %q{A lightweight task-management app}
+  s.description = %q{Todo allows you to manage and prioritize tasks on the command line}
+  s.rubyforge_project = "todo"
+
+  s.files = ["bin/todo"]
+  s.executables = ["bin/todo"]
+  s.add_dependency("gli")
+end
